@@ -1,6 +1,7 @@
 import { Table } from "react-bootstrap";
 import { useState, useContext } from "react";
 import { UserContext } from "../../utils/useContext";
+import { nanoid } from "nanoid";
 
 const QuarterlyView = () => {
   const {tasks, createNewTask, updateTask} = useContext(UserContext);
