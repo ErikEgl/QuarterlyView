@@ -1,11 +1,14 @@
 import { Table } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { UserContext } from "../../utils/useContext";
 
-const QuarterlyView = ({ tasks }) => {
+const QuarterlyView = () => {
+  const {tasks, createNewTask, updateTask} = useContext(UserContext);
 
   const todaysQuarter = Math.floor((new Date(2022, 0, 1).getMonth() + 3) / 3);
   const [currentQuarter, setCurrentQuarter] = useState(todaysQuarter);
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
 
   function getISO8601_week_no(day) { // day is monday
     day.setDate(day.getDate() + 3); // move day from monday to thursday
@@ -13,10 +16,10 @@ const QuarterlyView = ({ tasks }) => {
     const firstJanuary = new Date(day.setMonth(0, 1)); // set day to 1st january
     const januarysFirstThursday = firstJanuary;
     while (januarysFirstThursday.getDay() != 4) {
-      januarysFirstThursday.setDate(januarysFirstThursday.getDate() + 1); // if day is not thursday move day forward to thursday 
+      januarysFirstThursday.setDate(januarysFirstThursday.getDate() + 1); // if day is not thursday move day forward to thursday
     }
-    const oneWeek = 604800000
-    return 1 + Math.ceil((firstThursday - januarysFirstThursday) / oneWeek ); 
+    const oneWeek = 604800000;
+    return 1 + Math.ceil((firstThursday - januarysFirstThursday) / oneWeek);
   }
 
   const getWeeksInQuarter = (quarter, year) => {
@@ -24,14 +27,18 @@ const QuarterlyView = ({ tasks }) => {
     const quarterFirstDay = new Date(year, (quarter - 1) * 3, 1);
     const quarterLastDay = new Date(year, quarter * 3, 0);
 
-    while(quarterFirstDay.getDay() != 1) {
-      quarterFirstDay.setDate(quarterFirstDay.getDate() + 1) // if day is not monday move day forward till get monday
+    while (quarterFirstDay.getDay() != 1) {
+      quarterFirstDay.setDate(quarterFirstDay.getDate() + 1); // if day is not monday move day forward till get monday
     }
     const currentMonday = quarterFirstDay;
     while (currentMonday <= quarterLastDay) {
       const currentSunday = new Date(currentMonday);
       currentSunday.setDate(currentMonday.getDate() + 6); // move day from monday to sunday
-      weeks.push({ start: new Date(currentMonday), end: currentSunday, number: getISO8601_week_no(new Date(currentMonday)) });
+      weeks.push({
+        start: new Date(currentMonday),
+        end: currentSunday,
+        number: getISO8601_week_no(new Date(currentMonday)),
+      });
       currentMonday.setDate(currentMonday.getDate() + 7); // move day to the next week
     }
     return weeks;
@@ -52,7 +59,7 @@ const QuarterlyView = ({ tasks }) => {
       "November",
       "December",
     ];
-    
+
     const startMonth = (currentQuarter - 1) * 3;
     const headers = [];
 
@@ -64,8 +71,8 @@ const QuarterlyView = ({ tasks }) => {
       let colSpanSize = 0;
       {
         weeks.map((item) => {
-          if (new Date(item.start).getMonth() === monthIndex) { 
-            colSpanSize++; 
+          if (new Date(item.start).getMonth() === monthIndex) {
+            colSpanSize++;
           }
         });
       }
@@ -75,17 +82,19 @@ const QuarterlyView = ({ tasks }) => {
             <thead>
               <tr>
                 <th colSpan={colSpanSize} className="text-center">
-                  <h4>
-                    {monthName}
-                  </h4>
-                  </th>
+                  <h4>{monthName}</h4>
+                </th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 {weeks.map((item) => {
                   if (new Date(item.start).getMonth() === monthIndex) {
-                    return <td className="text-center" key={item.number}>{item.number}</td>; // render week number
+                    return (
+                      <td className="text-center" key={item.number}> 
+                        {item.number}  
+                      </td>
+                    ); // render week number
                   }
                 })}
               </tr>
@@ -106,20 +115,33 @@ const QuarterlyView = ({ tasks }) => {
 
     for (let week of weeks) {
       const cellClassName =
-        week.start <= endDate &&
-        week.end >= startDate 
-          ? "bg-success"
-          : "";
+        week.start <= endDate && week.end >= startDate ? "bg-success" : "";
       cells.push(
         <td key={`${id}-${week.number}`} className={cellClassName}></td>
       );
     }
-
     return (
       <tr key={id}>
-       <td title={`Description of ${name}`}>{name}</td>   {/* popup on hover */}
-        <td>{start}</td>
-        <td>{end}</td>
+        <td title={`Description of ${name}`}>{name}</td>
+        <td> 
+          <input
+              type="date"
+              placeholder="Start date"
+              onChange={() => updateTask(e, id) }
+              name="start"
+              value={start}
+          />
+        </td>
+        <td>
+        <input
+              type="date"
+              placeholder="End date"
+              onChange={(e) => updateTask(e, id)}
+              name="end"
+              value={end}
+              id={`endDate-${id}`}
+          />
+        </td>
         {cells}
       </tr>
     );
@@ -145,13 +167,26 @@ const QuarterlyView = ({ tasks }) => {
 
   return (
     <>
-    <div className="d-flex">
-      <h1>{`Quarter ${currentQuarter} ${currentYear}`}</h1>
-      <div className="mx-auto">
-        <button className="text-dark fw-semibold btn btn-success btn-lg me-1 rounded-0" onClick={handlePreviousQuarterClick}>{`< Previous 3 Months`}</button>
-        <button className="text-dark fw-semibold btn btn-success btn-lg rounded-0" onClick={handleNextQuarterClick}>{`Next 3 Months >`}</button>
+      <div className="d-flex">
+        <h1>{`Quarter ${currentQuarter} ${currentYear}`}</h1>
+        <div className="mx-auto">
+          <button
+            className="text-dark fw-semibold btn btn-success btn-lg me-1 rounded-0"
+            onClick={handlePreviousQuarterClick}
+          >{`< Previous 3 Months`}</button>
+          <button
+            className="text-dark fw-semibold btn btn-success btn-lg rounded-0"
+            onClick={handleNextQuarterClick}
+          >{`Next 3 Months >`}</button>
+        </div>
+        <button 
+          disabled={tasks && tasks.length == 10}
+          onClick={createNewTask}
+          className="text-dark fw-semibold btn btn-success btn-lg me-1 rounded-0"
+        >
+          {tasks && tasks.length != 10 ? 'Add task +' : "Maximum Number of Tasks Allowed Has Been Reached"} 
+        </button>
       </div>
-    </div>
       <Table bordered hover style={{ tableLayout: "fixed", width: "100%" }}>
         <thead>
           <tr>
@@ -161,9 +196,8 @@ const QuarterlyView = ({ tasks }) => {
             {renderMonthHeader()}
           </tr>
         </thead>
-        <tbody>{tasks.map(renderTaskRow)}</tbody>
+        {tasks && <tbody>{tasks.map(renderTaskRow)}</tbody>}
       </Table>
-      
     </>
   );
 };
