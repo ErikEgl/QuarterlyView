@@ -69,3 +69,18 @@ button:focus-visible {
 }
 
 
+tr[style] {
+  transition: all 0.2s ease-in-out;
+}
+
+tr[style]:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+.task-row {
+  transition: all 0.2s ease-in-out;
+}
+
+.task-row:hover {
+  background-color: rgba(255, 255, 255, 0.6);
+}
